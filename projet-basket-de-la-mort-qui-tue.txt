@@ -1,0 +1,29 @@
+POUR LE PROJET JS JE PROPOSE
+
+Démarrage
+
+lorsqu'on lance l'appli une première mini fenetre ou tu peux choisir tes touches , une colonne pour le J1, une pour le J2, avec le profil des personnages donc dès 5 boutons clicable par joueur, dès qu’on clique dessus on peut changer le keycode et ca fait qu’on jouera avec cette touche la. Je rappelle 5 touches par personnage : 
+- pour aller a droite
+- pour aller a gauche
+- pour sauter
+- pour tirer
+- pour dunker en attaque(simplement un tir puissant vers le bas)/ donner un coup en defense(permet de récupérer la balle ou de contrer le ballon lancé par l’adversaire) 
+
+il y aura un autre bouton pour confirmer, à ce moment la, la fenetre disparaît.
+Lorsque cette fenetre est présente le fond d’écran(le terrain de basket) sera opaque, dès qu’elle disparaît, on peut voir le fond d’écran en mode normal. 
+
+
+Composition du terrain/fenêtre.	
+
+Il n’y aura qu’une seule fenetre pour tout le projet, plus cette dite précedemment qui se superposera à la principale. Il s’agit de celle du terrain que je vous enverrais. C’est une simple image. 	Elle devra être délimité par un sol pour, un mur a gauche et un mur a droite, pour pas que le ballon se barre et pour gérer les rebonds. Pour les paniers, il faudra fixé une extrémité gauche et une extrémité droite pareil pour les rebonds, faudra que ce soit des tout petit rond de préférence, de la meme couleur que l’arceau de l’image. Ensuite pour le filet, 2 rectangle. Je vous ferais un dessin quand on se verra x) Enfin les joueurs qui seront des images superposées sur l’image de fond. 
+
+Les boutons
+
+Les touches gauche et droite sont assez simple, ca déplace l’image sans plus. 
+La touche sauté pareil l’image monte puis descend. Si une direction et saut sont appuyés en meme temps le saut se fait dans la direction. Le déplacement est bloqué si il y a un mur, il est ralentis si il y a l’adversaire. (il pousse l’adversaire.)
+En revanche les 2 autres boutons sont plus complexe : 
+- Le bouton lancé actionne la fonction shoot. La fonction shoot prend un paramètre : le temps qu’a mis le joueur appuyé sur le bouton, plus il a appayé longtemps, plus ca part loin. Pour la trajectoire, il faut une fonction de batard, j’ai déjà ma petite idée. Il y a un temps d’appuie limite ou le shoot se lance automatiquement. 
+- le bouton dunk/bash(en attaque). Si le joueur a le ballon, il est donc en attaque, et qu’il appuie sur la touche, ca déclenche un shoot vers le bas a -45 degrès(-pi/4) pas besoin du temps d’appuie cette fois. (vaut mieux avoir sauter pour faire cette touche sinon c’est de la merde) 
+- le bouton dunk/bash(en defense) Si on a pas le ballon(en defense) ce bouton met un coup vers l’avant si l’autre joueur a la balle, il la lache et ne peut plus bouger pendant une seconde, si il est en train de tirer, sa cancel son tire et il peut plus bouger. Si il y a personne, ca fait rien mais il peut plus retaper pendant 4sec. On ne peut pas courir et taper en meme temps. 
+
+J’ai pensé a plein d’autre fonctionnalités mais on va dire que ca c’est les bases, si on fait ca c’est déjà pas mal. Dsl pour les mots manquants et les fautes, j’ai ecrit vite et je me suis pas relu. Pour toute question adressez vous au grand Guichaf.
