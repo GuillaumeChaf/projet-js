@@ -86,7 +86,34 @@ function setup() {
     //
     // Ajout des écouteurs d'événement
     // 
-
-
+    
+    
     
 }
+
+function getBallonX() {
+	// on récupère la variable "left" du ballon
+	var xString = ballon.style.left;
+	
+	// on récupère uniquement les "nombres" correspondant à la position en x du ballon ( c'est à dire, on enlève le "px" )
+	var xNombre =  xString.slice(0, xString.length-2);
+	
+	// on divise par un afin de retourner un nombre et pas une chaine de caractères
+	return xNombre / 1;
+}
+
+function getBallonY() {
+	// on récupère la variable "top" du ballon
+	var yString = ballon.style.top;
+	
+	// on récupère uniquement les "nombres" correspondant à la position en y du ballon ( c'est à dire, on enlève le "px" )
+	var yNombre =  yString.slice(0, yString.length-2);
+	
+	// on divise par un afin de retourner un nombre et pas une chaine de caractères
+	return yNombre / 1;
+}
+
+
+
+
+
