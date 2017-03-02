@@ -11,6 +11,10 @@ var regles= document.getElementById('regles'); //on recupère la div qui va affi
 
 var nbDeplacement; //compte le nombre de déplacement du personnage, on l'initialise à zero
 
+var score;  //variable comptant le score
+var TONscore=document.getElementById('tonScore');
+
+
 
 
 
@@ -19,6 +23,7 @@ var enCoursDeTir = false; // vrai ssi le joueur est en train de tirer
 
 var tempsDebutTir; // le timeStamp de l'event
 
+//fonction permettant de charger une image de fond 
 function chargerImage(img) {
 	terrain = document.getElementById('terrain');
 	var imageFond  = document.createElement("img");
@@ -36,8 +41,11 @@ function chargerImage(img) {
     fond.style.position = "absolute";
     
 }
+//fonction permettant de commencer le feu
 function presetup() {
+	//chargement de l'écran de départ
 	chargerImage('index.png'); 
+	//événement à l'écoute d'une action sur une touche du clavier 
     body = document.getElementById('body');
     body.addEventListener("keydown", setup); 
     
@@ -45,6 +53,12 @@ function presetup() {
 }
 // fonction d'initialisation du jeu
 function setup() {
+	//initialisation d'un nombre de vie 
+	nbVie=5; 
+	
+	//initialisation score
+	score=0; 
+	
 	//on supprime les fils du terrain, des fils peuvent être mis par la fonction presetup ou setup elle même
     supprimerFilsTerrain(); 
     // on initialise les variables globales body et terrain
@@ -60,7 +74,7 @@ function setup() {
     //  Fond
     //
 
-
+	//chargement de l'image de fond
     chargerImage('fond.jpg');
 
     //
@@ -105,10 +119,12 @@ function setup() {
 
     joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
     joueur.style.top = (2/3) * fond.height -25 + "px"; // a 2/3 du bas de l'image = au centre
-
-    ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
-    ballon.style.top = (2/3) * fond.height + 25 + "px"; // a 2/3 du bas de l'image = au centre
+	
+	ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
+    ballon.style.top = (2/3) * fond.height + 25 + "px"; // a 2/3 du bas de l'image = au centre*/
     
+   
+    //initialisation du nombre de déplacement à 0
     nbDeplacement=0; 
     
     // MODIFICATION 
@@ -130,6 +146,12 @@ function setup() {
     cacherRegles.style.left=fond.width + "px";
     cacherRegles.style.top=(fond.height) + "px";
     
+	//initialisation de la div contenant le score ainsi que le nombre de vies
+	TONscore.style.position="absolute"; 
+    TONscore.style.width="100"; 
+    TONscore.style.heigh="50px"; 
+	TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie;
+    TONscore.style.top = (2/3) * fond.height + 50+ "px";
 
     //
     // Ajout des écouteurs d'événement
@@ -155,6 +177,8 @@ function insererAide() {
     imgAide.setAttribute('id', 'help'); 
     imgAide.setAttribute('src','aide.jpg'); 
     imgAide.addEventListener("mouseover",afficherAide);
+    //écouter d'évenement appelant la fonction Opacity au survol de l'image aide pour passer l'opacity des images à 0.5
+    imgAide.addEventListener("mouseover", Opacity); 
     imgAide.style.width=(1/3)*fond.width-100+"px";
     //insertion dans le dom
     regles.appendChild(imgAide); 
@@ -184,6 +208,7 @@ function getBallonY() {
 }
 
 function appuyer(event) {
+	OpacityAllImage(); //lorsqu'on appuie l'opacity des images passe à 1
 	if(event.keyCode === 37 || event.keyCode === 39) {
 		bougerPersoX(event);
 	}
@@ -209,13 +234,31 @@ function relacher(event, debut) {
 	}
 }
 
+function PositionX(img) {
+	
+	
+	var X = img.style.left; //on recupère la position sur l'axe des x
+	var lx = X.length; //on récupère la taille
+	var nbX = X.slice(0,lx-2); //on prend uniquemet les nombres du tableau récupéré
+	return nbX; 
+	
+}
 
+function PositionY(variable) {
+	
+	
+	var Y= variable.style.top;  //on recupère la position sur l'axe des y 
+	
+	var ly = Y.length;//on récupère la taille
+	
+	var nbY = Y.slice(0,ly-2); //on prend uniquemet les nombres du tableau récupéré
+	
+	return nbY; 
+}
 
-function bougerPersoX(event) {
-	console.log(event); 
-	var X=joueur.style.left; //position sur l'axe des x
-	var tailleX=X.length; //on obtient la taille du tableau récupéré
-	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
+function bougerPersoX(event) {	
+	//récupérer la position
+	var positionX=PositionX(joueur); 
 	
 	
 	if (event.keyCode === 39) {
@@ -227,8 +270,7 @@ function bougerPersoX(event) {
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1;  
 			if(nbDeplacement>50) {
-				alert("Trop de déplacement ! Vous avez perdu"); 
-				setup(); 
+				PerteVie(); //on perd une vie
 			}
 		} 
 		
@@ -244,8 +286,7 @@ function bougerPersoX(event) {
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1; 
 			if(nbDeplacement>50) {
-				alert("Trop de déplacement ! Vous avez perdu"); 
-				setup();
+				PerteVie(); //on perd une vie
 				
 			}
 		}
@@ -254,7 +295,6 @@ function bougerPersoX(event) {
 	
 }
 
-//MODIFICATION 
 
 function afficherAide(event) {
 	//on cache l'image d'aide
@@ -274,16 +314,71 @@ function afficherAide(event) {
 	regles.appendChild(newp2); 
 	//on supprime le premier fils de règle pour ne plus avoir l'image dans la div règle
 	regles.removeChild(regles.firstChild); 
+	 
 }
 
 
 
 function supprimerFilsTerrain() {
-	terrain = document.getElementById('terrain');
-	var nbChildren=terrain.children.length //on compte les enfants du terrain
+
+	var nbChildren=terrain.children.length //on compte les enfants de la zone
 	for(var i=0; i<nbChildren; i++) {
-		terrain.removeChild(terrain.lastChild); //on supprime les enfants du terrain
+		terrain.removeChild(terrain.lastChild); //on supprime les enfants de la zone
 	}
 }
 
+function Opacity() {
+	//selection de toutes les images
+	var tabImg=document.getElementsByTagName('img'); 
+	for(var i=0; i<tabImg.length; i++) {
+		tabImg[i].style.opacity=0.5; //on passe l'opacité de toutes les images à 0.5
+	}
+}
 
+function OpacityAllImage() {
+	var tabImg=document.getElementsByTagName('img'); 
+	for(var i=0; i<tabImg.length; i++) {
+		tabImg[i].style.opacity=1; //on passe l'opacitié de toutes les images à 1
+	}
+}
+
+function faitPanier() {
+	//on récupère la position du ballon sur l'axe des x et sur l'axe des y
+	var positionXballon=PositionX(ballon); 
+	var positionYballon=PositionY(ballon); 
+	
+	//on regarde si le ballon est proche du panier 
+	if (120 <positionXballon && positionXballon<160 && positionYballon>85 && positionYballon<105) {
+			score=score+1; //on augmente le score 
+			TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie; //on l'affiche
+			
+	}
+	else if (700<positionXballon && positionXballon<740 && positionYballon>85 && positionYballon<105) {
+			score=score+1; 
+			TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie; //on l'affiche
+		
+	}
+	else {
+		PerteVie(); //on perd une vie 
+	}
+}
+
+	
+function PerteVie() { 
+	nbVie=nbVie-1; //on décrémente le compteur 
+	TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie;//on affiche
+	if(nbVie===0) {
+		finGame();//on appelle la fonction mettant fin au jeu 
+	} 
+	
+}
+
+
+
+function finGame() {
+	alert("Vous avez perdu"); 
+	
+	supprimerFilsTerrain(); //on supprime les fils du terrain
+	chargerImage('game.png'); //on affiche l'image de fin du jeu
+	body.addEventListener("keydown", setup); //on place un écouter d'évenement qui relance le jeu si on appuie sur une touche
+}
