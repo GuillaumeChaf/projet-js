@@ -8,6 +8,12 @@ var fond; // variable correspondant au fond (img), servant à simplifier la lect
 var joueur; // variable correspondant au joueur (img), servant à simplifier la lecture du code
 var ballon; // variable correspondant au ballon (img), servant à simplifier la lecture du code
 
+
+// variables concernant le tir
+var enCoursDeTir = false; // vrai ssi le joueur est en train de tirer
+
+var tempsDebutTir; // le timeStamp de l'event
+
 // fonction d'initialisation du jeu
 function setup() {
     
@@ -31,8 +37,8 @@ function setup() {
     fond = document.getElementById('fond');
 
     // on redimensionne le fond du terrain de jeu
-    fond.width = window.innerWidth;
-    fond.height = window.innerHeight;
+    fond.width = 2 * window.innerWidth / 3;
+    fond.height = 2 * window.innerHeight / 3;
 
     // on positionne le plateau en absolu afin de pouvoir si besoin est, modifier sa position avec les propriétés CSS "top" et "left"
     fond.style.position = "absolute";
@@ -77,18 +83,17 @@ function setup() {
     // Positionnement initial du joueur et du ballon
     //
 
-    joueur.style.left = (window.innerWidth / 2) - 100 + "px"; // au centre
-    joueur.style.top = (2/3) * window.innerHeight + "px"; // a 2/3 du bas de l'image = au centre
+    joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
+    joueur.style.top = (2/3) * fond.height + "px"; // a 2/3 du bas de l'image = au centre
 
-    ballon.style.left = (window.innerWidth / 2) - 45 + "px"; // au centre
-    ballon.style.top = (2/3) * window.innerHeight + 50 + "px"; // a 2/3 du bas de l'image = au centre
+    ballon.style.left = (fond.width / 2) - 45 + "px"; // au centre
+    ballon.style.top = (2/3) * fond.height + 50 + "px"; // a 2/3 du bas de l'image = au centre
 
     //
     // Ajout des écouteurs d'événement
     // 
-	document.addEventListener("keydown", bougerPersoX); 
-
     
+    document.addEventListener("keydown", appuyer); 
 }
 
 function getBallonX() {
@@ -102,32 +107,39 @@ function getBallonX() {
 	return xNombre / 1;
 }
 
-function bougerPersoX(event) {
-	console.log(event); 
-	var X=joueur.style.left; //position sur l'axe des x par exemple 10px
-	var tailleX=X.length; //on obtient la taille du tableau récupéré
-	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
+function getBallonY() {
+	// on récupère la variable "top" du ballon
+	var yString = ballon.style.top;
 	
+	// on récupère uniquement les "nombres" correspondant à la position en y du ballon ( c'est à dire, on enlève le "px" )
+	var yNombre =  yString.slice(0, yString.length-2);
 	
-	if (event.keyCode === 39) {
-		if(positionX<1360) {
-			//on bouge le personnage vers la droite 
-			var newPosition=(Number (positionX) + 10)+"px"; 
-			joueur.style.left=newPosition;
-			ballon.style.left=(getBallonX()+10)+"px"; 
-		} 
-		
-		
+	// on divise par un afin de retourner un nombre et pas une chaine de caractères
+	return yNombre / 1;
+}
+
+function appuyer(event) {
+	if(event.keyCode === 37 || event.keyCode === 39) {
+		bougerPersoX(event);
 	}
-	if(event.keyCode===37) {
-		//on bouge le personnage vers la gauche 
-		if( positionX >410) {
-			var newPosition=(Number (positionX) -10)+"px"; 
-		
-			joueur.style.left=newPosition; 
-			ballon.style.left=(getBallonX()-10)+"px"; 
-		}
+	if(!enCoursDeTir && event.keyCode === 87) {
+		calculDureeAppuie(event);
 	}
-	
-	
+}
+
+function calculDureeAppuie(event) {
+	if( ! enCoursDeTir) {
+		enCoursDeTir = true;
+		tempsDebutTir = event.timeStamp;
+		document.addEventListener("keyup",function(event) { relacher(event, tempsDebutTir) } );
+	}
+}
+
+function relacher(event, debut) {
+	if(enCoursDeTir && event.keyCode === 87) {
+		var fin = event.timeStamp;
+		document.removeEventListener("keyup",function(event) { relacher(event, debut) } );
+		enCoursDeTir = false;
+		//tir(fin-debut);
+	}
 }
