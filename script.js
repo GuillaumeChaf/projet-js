@@ -86,7 +86,7 @@ function setup() {
     joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
     joueur.style.top = (2/3) * fond.height + "px"; // a 2/3 du bas de l'image = au centre
 
-    ballon.style.left = (fond.width / 2) - 45 + "px"; // au centre
+    ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
     ballon.style.top = (2/3) * fond.height + 50 + "px"; // a 2/3 du bas de l'image = au centre
 
     //
@@ -142,4 +142,36 @@ function relacher(event, debut) {
 		enCoursDeTir = false;
 		//tir(fin-debut);
 	}
+}
+
+
+
+function bougerPersoX(event) {
+	console.log(event); 
+	var X=joueur.style.left; //position sur l'axe des x par exemple 10px
+	var tailleX=X.length; //on obtient la taille du tableau récupéré
+	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
+	
+	
+	if (event.keyCode === 39) {
+		if(positionX<1360) {
+			//on bouge le personnage vers la droite 
+			var newPosition=(Number (positionX) + 10)+"px"; 
+			joueur.style.left=newPosition;
+			ballon.style.left=(getBallonX()+10)+"px"; 
+		} 
+		
+		
+	}
+	if(event.keyCode===37) {
+		//on bouge le personnage vers la gauche 
+		if( positionX >410) {
+			var newPosition=(Number (positionX) -10)+"px"; 
+		
+			joueur.style.left=newPosition; 
+			ballon.style.left=(getBallonX()-10)+"px"; 
+		}
+	}
+	
+	
 }
