@@ -86,8 +86,8 @@ function setup() {
     //
     // Ajout des écouteurs d'événement
     // 
-    
-    
+	document.addEventListener("keydown", bougerPersoX); 
+
     
 }
 
@@ -102,18 +102,32 @@ function getBallonX() {
 	return xNombre / 1;
 }
 
-function getBallonY() {
-	// on récupère la variable "top" du ballon
-	var yString = ballon.style.top;
+function bougerPersoX(event) {
+	console.log(event); 
+	var X=joueur.style.left; //position sur l'axe des x par exemple 10px
+	var tailleX=X.length; //on obtient la taille du tableau récupéré
+	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
 	
-	// on récupère uniquement les "nombres" correspondant à la position en y du ballon ( c'est à dire, on enlève le "px" )
-	var yNombre =  yString.slice(0, yString.length-2);
 	
-	// on divise par un afin de retourner un nombre et pas une chaine de caractères
-	return yNombre / 1;
+	if (event.keyCode === 39) {
+		if(positionX<1360) {
+			//on bouge le personnage vers la droite 
+			var newPosition=(Number (positionX) + 10)+"px"; 
+			joueur.style.left=newPosition;
+			ballon.style.left=(getBallonX()+10)+"px"; 
+		} 
+		
+		
+	}
+	if(event.keyCode===37) {
+		//on bouge le personnage vers la gauche 
+		if( positionX >410) {
+			var newPosition=(Number (positionX) -10)+"px"; 
+		
+			joueur.style.left=newPosition; 
+			ballon.style.left=(getBallonX()-10)+"px"; 
+		}
+	}
+	
+	
 }
-
-
-
-
-
