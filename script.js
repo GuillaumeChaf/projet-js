@@ -7,6 +7,7 @@ var terrain; // variable correspondant au terrain de jeu (div), servant à simpl
 var fond; // variable correspondant au fond (img), servant à simplifier la lecture du code
 var joueur; // variable correspondant au joueur (img), servant à simplifier la lecture du code
 var ballon; // variable correspondant au ballon (img), servant à simplifier la lecture du code
+
 var regles= document.getElementById('regles'); //on recupère la div qui va afficher les règles 
 
 var nbDeplacement; //compte le nombre de déplacement du personnage, on l'initialise à zero
@@ -89,6 +90,7 @@ function setup() {
     //
 
     joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
+
     joueur.style.top = (2/3) * fond.height -25 + "px"; // a 2/3 du bas de l'image = au centre
 
     ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
@@ -121,6 +123,7 @@ function setup() {
     // 
     
     document.addEventListener("keydown", appuyer); 
+
    
     cacherRegles.addEventListener("click", disparaitreRgle); 
    
@@ -137,6 +140,7 @@ function insererAide() {
     //insertion dans le dom
     regles.appendChild(imgAide); 
    
+
 }
 
 function getBallonX() {
@@ -190,41 +194,53 @@ function relacher(event, debut) {
 
 
 function bougerPersoX(event) {
-	console.log(event); 
+	
 	var X=joueur.style.left; //position sur l'axe des x
+
 	var tailleX=X.length; //on obtient la taille du tableau récupéré
 	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
 	
 	
 	if (event.keyCode === 39) {
+
 		if(positionX<2*fond.width/3) {
+
+	
 			//on bouge le personnage vers la droite 
 			var newPosition=(Number (positionX) + 10)+"px"; 
 			joueur.style.left=newPosition;
 			ballon.style.left=(getBallonX()+10)+"px"; 
+
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1;  
 			if(nbDeplacement>50) {
 				alert("Trop de déplacement ! Vous avez perdu"); 
 				refresh();  //réinitialisation du plateau 
 			}
+
 		} 
 		
 		
 	}
 	if(event.keyCode===37) {
 		//on bouge le personnage vers la gauche 
+
 		if( positionX >fond.width/4) {
+
+	
 			var newPosition=(Number (positionX) -10)+"px"; 
 		
 			joueur.style.left=newPosition; 
 			ballon.style.left=(getBallonX()-10)+"px"; 
+
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1; 
 			if(nbDeplacement>50) {
 				alert("Trop de déplacement ! Vous avez perdu"); 
 				refresh(); 
 			}
+=======
+
 		}
 	}
 	
@@ -272,3 +288,4 @@ function refresh() {
 	}
 	setup(); //on réinitialise 
 }
+
