@@ -1,5 +1,5 @@
 // Evenement déclenché lorsque le DOM a fini de charger, qui va appeller notre fonction setup()
-document.addEventListener("DOMContentLoaded", setup);
+document.addEventListener("DOMContentLoaded", presetup);
 
 var body; // variable correspondant au body, servant à simplifier la lecture du code
 var terrain; // variable correspondant au terrain de jeu (div), servant à simplifier la lecture du code
@@ -7,7 +7,6 @@ var terrain; // variable correspondant au terrain de jeu (div), servant à simpl
 var fond; // variable correspondant au fond (img), servant à simplifier la lecture du code
 var joueur; // variable correspondant au joueur (img), servant à simplifier la lecture du code
 var ballon; // variable correspondant au ballon (img), servant à simplifier la lecture du code
-
 var regles= document.getElementById('regles'); //on recupère la div qui va afficher les règles 
 
 var nbDeplacement; //compte le nombre de déplacement du personnage, on l'initialise à zero
@@ -20,11 +19,38 @@ var enCoursDeTir = false; // vrai ssi le joueur est en train de tirer
 
 var tempsDebutTir; // le timeStamp de l'event
 
+function chargerImage(img) {
+	terrain = document.getElementById('terrain');
+	var imageFond  = document.createElement("img");
+    imageFond.src="./"+img; 
+    imageFond.id = img;
+    terrain.appendChild(imageFond);
+
+    fond = document.getElementById(img);
+
+    // on redimensionne le fond du terrain de jeu
+    fond.width = 2 * window.innerWidth / 3;
+    fond.height = 2 * window.innerHeight / 3;
+
+    // on positionne le plateau en absolu afin de pouvoir si besoin est, modifier sa position avec les propriétés CSS "top" et "left"
+    fond.style.position = "absolute";
+    
+}
+function presetup() {
+	chargerImage('index.png'); 
+    body = document.getElementById('body');
+    body.addEventListener("keydown", setup); 
+    
+	
+}
 // fonction d'initialisation du jeu
 function setup() {
-    
+	//on supprime les fils du terrain, des fils peuvent être mis par la fonction presetup ou setup elle même
+    supprimerFilsTerrain(); 
     // on initialise les variables globales body et terrain
     body = document.getElementById('body');
+    //on supprime l'écouteur d'évènement sur le body que nous avons activé dans la fonction presetup
+    body.removeEventListener("keydown", setup); 
     terrain = document.getElementById('terrain');
 
     // on enleve le margin par defaut du body qui décale légèrement le jeu vers la droite et le bas
@@ -34,20 +60,8 @@ function setup() {
     //  Fond
     //
 
-    // on ajoute l'image de fond du jeu
-    var imageFond  = document.createElement("img");
-    imageFond.src = "./fond.jpg";
-    imageFond.id = "fond";
-    terrain.appendChild(imageFond);
 
-    fond = document.getElementById('fond');
-
-    // on redimensionne le fond du terrain de jeu
-    fond.width = 2 * window.innerWidth / 3;
-    fond.height = 2 * window.innerHeight / 3;
-
-    // on positionne le plateau en absolu afin de pouvoir si besoin est, modifier sa position avec les propriétés CSS "top" et "left"
-    fond.style.position = "absolute";
+    chargerImage('fond.jpg');
 
     //
     //  Joueur
@@ -90,7 +104,6 @@ function setup() {
     //
 
     joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
-
     joueur.style.top = (2/3) * fond.height -25 + "px"; // a 2/3 du bas de l'image = au centre
 
     ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
@@ -123,13 +136,19 @@ function setup() {
     // 
     
     document.addEventListener("keydown", appuyer); 
-
    
-    cacherRegles.addEventListener("click", disparaitreRgle); 
+    cacherRegles.addEventListener("click", insererAide); 
+    
+    
    
 }
 // MODIFICATION
 function insererAide() {
+	//on supprime les fils de regles ce qui évitera d'avoir deux fois la même image affichée
+	var nbChildren=regles.children.length; //on compte le nombre d'enfants de règles  
+	for(var i=0; i<nbChildren; i++) {
+		regles.removeChild(regles.lastChild); //on supprime les enfants de règles
+	}
 	//création de l'image
 	var imgAide=document.createElement('img'); 
 	//ajout d'attribut id et src
@@ -140,7 +159,6 @@ function insererAide() {
     //insertion dans le dom
     regles.appendChild(imgAide); 
    
-
 }
 
 function getBallonX() {
@@ -194,53 +212,42 @@ function relacher(event, debut) {
 
 
 function bougerPersoX(event) {
-	
+	console.log(event); 
 	var X=joueur.style.left; //position sur l'axe des x
-
 	var tailleX=X.length; //on obtient la taille du tableau récupéré
 	var positionX=X.slice(0, tailleX-2); //on récupère seulement les nombres sans les px
 	
 	
 	if (event.keyCode === 39) {
-
 		if(positionX<2*fond.width/3) {
-
-	
 			//on bouge le personnage vers la droite 
 			var newPosition=(Number (positionX) + 10)+"px"; 
 			joueur.style.left=newPosition;
 			ballon.style.left=(getBallonX()+10)+"px"; 
-
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1;  
 			if(nbDeplacement>50) {
 				alert("Trop de déplacement ! Vous avez perdu"); 
-				refresh();  //réinitialisation du plateau 
+				setup(); 
 			}
-
 		} 
 		
 		
 	}
 	if(event.keyCode===37) {
 		//on bouge le personnage vers la gauche 
-
 		if( positionX >fond.width/4) {
-
-	
 			var newPosition=(Number (positionX) -10)+"px"; 
 		
 			joueur.style.left=newPosition; 
 			ballon.style.left=(getBallonX()-10)+"px"; 
-
 			//on augmente le nombre de déplacement
 			nbDeplacement=nbDeplacement+1; 
 			if(nbDeplacement>50) {
 				alert("Trop de déplacement ! Vous avez perdu"); 
-				refresh(); 
+				setup();
+				
 			}
-=======
-
 		}
 	}
 	
@@ -265,27 +272,18 @@ function afficherAide(event) {
 	var newp2=document.createElement('p'); 
 	newp2.innerHTML="Pour tirer appuyer sur la touche w, plus vous appuyer plus le tir est performant"; 
 	regles.appendChild(newp2); 
-	//on supprime les fils de regles afin de ne pas avoir plusieurs fois les règles afficher lorsqu'on survole l'image plusieurs fois
+	//on supprime le premier fils de règle pour ne plus avoir l'image dans la div règle
 	regles.removeChild(regles.firstChild); 
 }
 
-function disparaitreRgle() {
-	
-	var nbChildren=regles.children.length; //on compte le nombre d'enfants de règles  
-	for(var i=0; i<nbChildren; i++) {
-		regles.removeChild(regles.lastChild); //on supprime les enfants de règles
-	}
-	insererAide(); //on affiche à nouveau l'image d'aide 
-	
-}
 
-function refresh() {
-	
+
+function supprimerFilsTerrain() {
 	terrain = document.getElementById('terrain');
 	var nbChildren=terrain.children.length //on compte les enfants du terrain
 	for(var i=0; i<nbChildren; i++) {
 		terrain.removeChild(terrain.lastChild); //on supprime les enfants du terrain
 	}
-	setup(); //on réinitialise 
 }
+
 
