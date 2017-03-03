@@ -11,11 +11,11 @@ var regles= document.getElementById('regles'); //on recupère la div qui va affi
 
 var nbDeplacement; //compte le nombre de déplacement du personnage, on l'initialise à zero
 
-var score;  //variable comptant le score
+var score=0;  //variable comptant le score
 var TONscore=document.getElementById('tonScore');
 
 
-
+var nbVie=5;
 
 
 // variables concernant le tir
@@ -53,11 +53,7 @@ function presetup() {
 }
 // fonction d'initialisation du jeu
 function setup() {
-	//initialisation d'un nombre de vie 
-	nbVie=5; 
 	
-	//initialisation score
-	score=0; 
 	
 	//on supprime les fils du terrain, des fils peuvent être mis par la fonction presetup ou setup elle même
     supprimerFilsTerrain(); 
@@ -271,6 +267,7 @@ function bougerPersoX(event) {
 			nbDeplacement=nbDeplacement+1;  
 			if(nbDeplacement>50) {
 				PerteVie(); //on perd une vie
+				
 			}
 		} 
 		
@@ -287,6 +284,7 @@ function bougerPersoX(event) {
 			nbDeplacement=nbDeplacement+1; 
 			if(nbDeplacement>50) {
 				PerteVie(); //on perd une vie
+				
 				
 			}
 		}
@@ -351,11 +349,13 @@ function faitPanier() {
 	if (120 <positionXballon && positionXballon<160 && positionYballon>85 && positionYballon<105) {
 			score=score+1; //on augmente le score 
 			TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie; //on l'affiche
+			setup(); 
 			
 	}
 	else if (700<positionXballon && positionXballon<740 && positionYballon>85 && positionYballon<105) {
 			score=score+1; 
 			TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie; //on l'affiche
+			setup(); 
 		
 	}
 	else {
@@ -365,20 +365,26 @@ function faitPanier() {
 
 	
 function PerteVie() { 
+	alert("perte d'une vie"); 
 	nbVie=nbVie-1; //on décrémente le compteur 
 	TONscore.innerHTML="Score : "+score+" Nombre de vies "+nbVie;//on affiche
-	if(nbVie===0) {
+	if(nbVie==0) {
+		
 		finGame();//on appelle la fonction mettant fin au jeu 
 	} 
+	else {
+		setup();
+	}
+	
 	
 }
 
 
 
 function finGame() {
-	alert("Vous avez perdu"); 
-	
 	supprimerFilsTerrain(); //on supprime les fils du terrain
 	chargerImage('game.png'); //on affiche l'image de fin du jeu
 	body.addEventListener("keydown", setup); //on place un écouter d'évenement qui relance le jeu si on appuie sur une touche
+	nbVie=5; 
+	score=0;
 }
