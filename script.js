@@ -10,6 +10,7 @@ var scores; 			// variable correspondant aux 5 meilleurs scores (div), servant �
 var regles; 			// variable correspondant aux regles (div), servant à simplifier la lecture du code
 var boutonCacherRegles	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
 var TONscore; 			// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
+var lancer; //variable correspondant a la fonction setInterval qui va servir pour l'action du tir
 
 var afficherEcranAccueil = true;	// booleen vrai ssi il faut afficher l'écran d'accueil dans le setup au lieu de l'image de fond du terrain
 var afficherEcranPerdu = false;		// boolean vrai ssi il faut afficher l'écran gameOver dans le setup au lieu de l'image de fond du terrain
@@ -369,6 +370,27 @@ function OpacityAllImage() {
 	for(var i=0; i<tabImg.length; i++) {
 		tabImg[i].style.opacity=1; //on passe l'opacitié de toutes les images à 1
 	}
+}
+
+function tir(force){//fonction lancé dès que la touche tir est relaché
+
+        if(force > 2500){
+            force = 2500;}
+
+        var attraction = 1;
+        lancer = setInterval(function() {attraction += 2 ;intervalle(force, attraction);arret()}, 75);
+}
+
+function intervalle(force, attraction){// fonction qui a chaque intervalle de temps bouge le ballon.
+
+    ballon.style.top = getImageY(ballon) - (8+(force*0.024)) + attraction + "px";
+    ballon.style.left = getImageX(ballon) + (6+(force*0.0047)) + "px";
+}
+function arret(){
+
+    if(ballon.style.top.substr(0,3) >= 490  || ballon.style.left.substr(0,3) >= 950){
+        clearInterval(lancer);
+    }
 }
 
 function faitPanier() {
