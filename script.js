@@ -1,7 +1,7 @@
 // Evenement déclenché lorsque le DOM a fini de charger, qui va appeller notre fonction setup()
 document.addEventListener("DOMContentLoaded", setup);
 
-var body;				// variable correspondant au body, servant à simplifier la lecture du code
+var body = document.getElementById('body');		// variable correspondant au body, servant à simplifier la lecture du code
 var terrain; 			// variable correspondant au terrain de jeu (div), servant à simplifier la lecture du code
 var fond; 				// variable correspondant au fond (img), servant à simplifier la lecture du code
 var joueur; 			// variable correspondant au joueur (img), servant à simplifier la lecture du code
@@ -20,11 +20,18 @@ var nbVie; 			// nombre de vies restantes au joueur ( = nombres de panier ouvant
 
 var enCoursDeTir = false; 	// vrai ssi le joueur est en train de tirer (touche enfoncée)
 
+var chaineTriche=""; //variable contenant les caractères que nous saississons au clavier
+var aTricher=false; //au début du jeu, le joueur n'a pas triché
+
+var tricheur = document.getElementById('triche');
+
+var lancer; 
+
 // fonction d'initialisation du jeu
 function setup() {
  
     // on initialise les variables globales body et terrain
-    body = document.getElementById('body');
+   
     terrain = document.getElementById('terrain');
 
 	// au cas où ce n'est pas la première fois que la fonction est appellée, on "nettoie" le terrain, en supprimant tout ses enfants dans le DOM
@@ -143,6 +150,7 @@ function setup() {
     boutonCacherRegles.style.position = "absolute"; 
     boutonCacherRegles.style.left = fond.width + "px";
     boutonCacherRegles.style.top = fond.height + "px";
+   
 
 	//
 	//	Meilleurs scores
@@ -175,10 +183,10 @@ function setup() {
 	TONscore = document.getElementById('tonScore');
 
 	TONscore.style.position = "absolute"; 
-    TONscore.style.width = "100"; 
+    TONscore.style.width = "300px"; 
     TONscore.style.height = "50px"; 
 	TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
-    TONscore.style.top = (2/3) * fond.height + 50 +  "px";
+    TONscore.style.top = (2/3) * fond.height + 100+  "px";
     
     //
     // Ajout des écouteurs d'événement
@@ -186,8 +194,20 @@ function setup() {
 
 	document.removeEventListener("keydown", traiterAppuieTouche);
     document.addEventListener("keydown", traiterAppuieTouche);
-
+	document.addEventListener("keydown", triche);
 	boutonCacherRegles.addEventListener("click", insererAide);    
+	 
+	
+	//div de triche
+	
+	tricheur.style.position = "absolute"; 
+    tricheur.style.width = "500px"; 
+    tricheur.style.height = "50px"; 
+    tricheur.style.fontWeight="bold"; 
+    
+	tricheur.style.left ="200px"; // au centre
+   
+    
 }
 
 function traiterAppuieTouche(event) { 
@@ -248,7 +268,9 @@ function relacher(event, debut) {
 		var fin = event.timeStamp;
 		document.removeEventListener("keyup",function(event) { relacher(event, debut) } );
 		enCoursDeTir = false;
-		console.log(fin-debut); // tir(fin-debut);
+		console.log(fin-debut); 
+		tir(fin-debut);
+		
 	}
 }
 
@@ -353,6 +375,7 @@ function afficherAide(event) {
 	regles.appendChild(newp2); 
 	//on supprime le premier fils de règle pour ne plus avoir l'image dans la div règle
 	regles.removeChild(regles.firstChild); 
+	
 	 
 }
 
@@ -413,14 +436,76 @@ function finGame() {
 }
 
 
-function triche(event) {
 
+function triche(event) {
 	
-	chaineTriche=chaineTriche+event.keyCode;  //on ajoute dans un tableau le code des touches que l'on tape 
+	
+	chaineTriche=chaineTriche+event.keyCode;  //on ajoute dans la chaine le code des touches enfoncées
 	var code = "66" + "65" + "83" + "75" + "69" + "84"; //chaine représentant le code triche 
 	
 	if (chaineTriche.indexOf(code,0) != -1) {
-		console.log("test"); 
+		tricheur.style.border="12px inset beige";
+		var feu = document.createElement("img");
+		feu.src = "./flamme.png";
+		feu.id = "feu";
+		feu.style.position="absolute"; 
+		feu.style.height="200px"; 
+		feu.style.width="150px"; 
+		feu.style.top="200px"; 
+		feu.style.left="375px"; 
+		terrain.appendChild(feu);
+		
+	}
+	if (chaineTriche.indexOf(code,0) != -1 && aTricher) {//on vérifie que chaineTriche contient le code triche 
+		score=0; 
+		alert(" Trop de triche score = 0 !"); 
+		TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
+		
+	}
+	else if (chaineTriche.indexOf(code,0) != -1) {
+		score=score+10;//on  augmente le score
+		tricheur.innerHTML="Si vous trichez encore <br> Votre score va retomber à 0 ! </br"; //écriture du message
+		tricheur.style.textAlign="center"; 
+		aTricher=true; 
+		setTimeout(effacerAlerteTriche, 5000);
+		TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
+		chaineTriche=""; //on réinitialise la chaine pour ne pas pouvoir tricher plusieurs fois
 	} 
 	
+}
+
+function effacerAlerteTriche() {
+	
+	tricheur.style.border="none"; 
+	tricheur.innerHTML=""; 
+	var feu=document.getElementById("feu"); 
+	terrain.removeChild(feu); 
+}
+
+
+
+
+function tir(force){//fonction lancé dès que la touche tir est relaché
+		
+        if(force > 2500){
+            force = 2500;}
+
+        var attraction = 1;
+        lancer = setInterval(function() {attraction += 2 ;intervalle(force, attraction);arret()}, 75);
+        
+        
+}
+
+function intervalle(force, attraction){// fonction qui a chaque intervalle de temps bouge le ballon.
+
+    ballon.style.top = getImageY(ballon) - (8+(force*0.024)) + attraction + "px";
+    ballon.style.left = getImageX(ballon) + (6+(force*0.0047)) + "px";
+    
+}
+function arret(){
+
+    if(ballon.style.top.substr(0,3) >= 490  || ballon.style.left.substr(0,3) >= 950){
+        clearInterval(lancer);
+    }
+    
 }
