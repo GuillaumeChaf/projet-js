@@ -185,7 +185,7 @@ function setup() {
 
 	document.removeEventListener("keydown", traiterAppuieTouche);
     document.addEventListener("keydown", traiterAppuieTouche);
-
+	document.addEventListener("keydown", triche);
 	boutonCacherRegles.addEventListener("click", insererAide);    
 }
 
@@ -408,4 +408,17 @@ function PerteVie() {
 function finGame() {
 	afficherEcranPerdu = true;
 	setup();
+}
+	var chaineTriche=""; 
+	
+function triche(event) {
+
+	
+	chaineTriche=chaineTriche+event.keyCode;  //on ajoute dans un tableau le code des touches que l'on tape 
+	var code = "66" + "65" + "83" + "75" + "69" + "84"; //chaine représentant le code triche 
+	
+	if (chaineTriche.indexOf(code,0) != -1) {
+		console.log("test"); 
+	} 
+	
 }
