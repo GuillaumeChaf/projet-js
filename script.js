@@ -40,10 +40,11 @@ function setup() {
 	// Initialisation des variables déplacement et vies
 	//
 
-    nbDeplacement=0;
+		nbDeplacement=50;
 	if(afficherEcranAccueil) {
 		score = 0;
 		nbVie = 5;
+		
 	}
 
     //
@@ -157,7 +158,7 @@ function setup() {
 	scores.style.position = "absolute";
 	scores.style.width = fond.width + "px";
 	scores.style.height = fond.height / 2 + "px";
-	scores.style.top = fond.height + "px";
+	scores.style.top = fond.height +"px";
 	
 	var scoreTitre = document.createElement("h2");
 	scoreTitre.innerHTML = " Meilleurs Scores ";
@@ -176,7 +177,7 @@ function setup() {
 	TONscore.style.position = "absolute"; 
     TONscore.style.width = "100"; 
     TONscore.style.height = "50px"; 
-	TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie;
+	TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
     TONscore.style.top = (2/3) * fond.height + 50 +  "px";
     
     //
@@ -185,7 +186,7 @@ function setup() {
 
 	document.removeEventListener("keydown", traiterAppuieTouche);
     document.addEventListener("keydown", traiterAppuieTouche);
-	document.addEventListener("keydown", triche);
+
 	boutonCacherRegles.addEventListener("click", insererAide);    
 }
 
@@ -310,9 +311,9 @@ function bougerPersoX(event) {
 			ballon.style.left = getImageX(ballon) +10 + "px";
 
 			//on augmente le nombre de déplacement
-			nbDeplacement ++;  
-
-			if(nbDeplacement>50) {
+			nbDeplacement --;  
+			TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
+			if(nbDeplacement==0) {
 				PerteVie(); //on perd une vie
 			}
 		} 
@@ -325,9 +326,9 @@ function bougerPersoX(event) {
 			ballon.style.left= getImageX(ballon) - 10 + "px";
 
 			//on augmente le nombre de déplacement
-			nbDeplacement ++;
-
-			if(nbDeplacement>50) {
+			nbDeplacement --;
+			TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
+			if(nbDeplacement==0) {
 				PerteVie(); //on perd une vie
 			}
 		}
@@ -378,13 +379,13 @@ function faitPanier() {
 	//on regarde si le ballon est proche du panier 
 	if (120 < positionXballon && positionXballon < 160 && positionYballon > 85 && positionYballon < 105) {
 			score ++; //on augmente le score 
-			TONscore.innerHTML="Score : " + score + " Nombre de vies " + nbVie; //on l'affiche
+			TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
 			setup(); 
 			
 	}
 	else if (700 < positionXballon && positionXballon < 740 && positionYballon > 85 && positionYballon < 105) {
 			score ++; 
-			TONscore.innerHTML="Score : " + score + " Nombre de vies " + nbVie; //on l'affiche
+			TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
 			setup(); 
 		
 	}
@@ -396,7 +397,7 @@ function faitPanier() {
 function PerteVie() { 
 	alert("perte d'une vie"); 
 	nbVie --; //on décrémente le compteur 
-	TONscore.innerHTML="Score : " + score + " Nombre de vies " + nbVie;//on affiche
+	TONscore.innerHTML = "Score : " + score + " Nombre de vies " + nbVie+" Déplacement Restant "+nbDeplacement; 
 	if(nbVie === 0) {
 		finGame();//on appelle la fonction mettant fin au jeu 
 	} 
@@ -407,10 +408,11 @@ function PerteVie() {
 
 function finGame() {
 	afficherEcranPerdu = true;
+	
 	setup();
 }
-	var chaineTriche=""; 
-	
+
+
 function triche(event) {
 
 	
