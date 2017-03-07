@@ -1,0 +1,36 @@
+.infos {
+	background-color: black;
+	color: white;
+	border: dotted white 4px;
+}
+
+.infos p {
+	margin-top:3px;
+	margin-bottom:0px;
+}
+
+.infos .droite {
+	float:right;
+	text-align: right;
+	width : 150px;
+	margin-right: 20px;
+		
+}
+
+.infos .gauche {
+	text-align: center;
+	width: 150px;		
+	margin-left: 20px;		
+}
+
+.infos .score {
+	text-align:center;
+	color:lightgreen;
+	font-size: 40px;
+	
+}
+
+.infos .chiffres {
+	color: lightcoral;
+	font-size: 20px;
+}
