@@ -452,9 +452,9 @@ function triche(event) {
 		feu.style.height="200px"; 
 		feu.style.width="150px"; 
 		feu.style.top="200px"; 
-		feu.style.left="375px"; 
+		feu.style.left=joueur.style.left; 
 		terrain.appendChild(feu);
-		
+		document.removeEventListener("keydown", traiterAppuieTouche);
 	}
 	if (chaineTriche.indexOf(code,0) != -1 && aTricher) {//on vérifie que chaineTriche contient le code triche 
 		score=0; 
@@ -480,6 +480,7 @@ function effacerAlerteTriche() {
 	tricheur.innerHTML=""; 
 	var feu=document.getElementById("feu"); 
 	terrain.removeChild(feu); 
+	document.addEventListener("keydown", traiterAppuieTouche);
 }
 
 
