@@ -276,12 +276,12 @@ function myajax(url, callBack) {
 }
 
 function scoreRequest() {
-    var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=select';
+    var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=select';
     myajax(url, afficherScores);
 }
 
 function insererScoreBdd(nom) {
-	var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+	var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
 	myajax(url, scoreRequest);
 }
 
