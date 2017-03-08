@@ -10,21 +10,20 @@ var scores; 			// variable correspondant aux 5 meilleurs scores (div), servant �
 var regles; 			// variable correspondant aux regles (div), servant à simplifier la lecture du code
 var boutonCacherRegles;	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
 var information; 		// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
+var tricheur;			// variable correspondant à la zone où on affiche un message en cas d'utilisation de la fonction triche (div)
 
 var afficherEcranAccueil = true;	// booleen vrai ssi il faut afficher l'écran d'accueil dans le setup au lieu de l'image de fond du terrain
 var afficherEcranPerdu = false;		// boolean vrai ssi il faut afficher l'écran gameOver dans le setup au lieu de l'image de fond du terrain
 
-var perdUneVie = true; // vrai ssi le joueur perd une vie lorsque le ballon s'arrete, permet d'éviter de perdre une vie en marquant un panier
+var perdUneVie = true; 		// vrai ssi le joueur perd une vie lorsque le ballon s'arrete, permet d'éviter de perdre une vie en marquant un panier
 
 var enCoursDeTir = false; 	// vrai ssi le joueur est en train de tirer (touche enfoncée)
 var peutBouger = true; 		// vrai ssi le joueur est en train de tirer (touche enfoncée)
 
-var chaineTriche = ""; //variable contenant les caractères que nous saississons au clavier
-var aTricher = false; //au début du jeu, le joueur n'a pas triché
+var chaineTriche = ""; 		// variable contenant les caractères que nous saississons au clavier
+var aTricher = false; 		// au début du jeu, le joueur n'a pas triché
 
-var tricheur;
-
-var lancer; 
+var lancer;					// variable correspondant à l'intervalle de déplacement du ballon 
 
 // fonction d'initialisation du jeu
 function setup() {
@@ -46,6 +45,7 @@ function setup() {
     //  Fond
     //
 	
+	// l'image de fond alterne entre le terrain de jeu, un ecrand 'accueil et un ecran de fin, selon les variables globales
 	var imageFond  = document.createElement("img");
 	if(afficherEcranAccueil) {
 		imageFond.src = "./index.png";
@@ -119,6 +119,8 @@ function setup() {
 	//	Informations
 	//
 
+	// on crée ici un objet de type informations, à partir duquel on pourra afficher le panneau de score pendant la partie
+	// cf informations() pour plus de détails sur l'objet
 	if(afficherEcranAccueil || afficherEcranPerdu) {
 		information = new informations(300, 100);
 		information.div.removeAttribute("class");
@@ -179,8 +181,10 @@ function setup() {
     // Ajout des écouteurs d'événement
     // 
 
+	// au cas ou, pour éviter tout problème, on supprime l'eventListener avant de le rajouter
 	document.removeEventListener("keydown", traiterAppuieTouche);
     document.addEventListener("keydown", traiterAppuieTouche);
+
 	document.addEventListener("keydown", triche);
 	
 	 
@@ -201,8 +205,10 @@ function setup() {
     
 }
 
+// fonction evenenement permettant de sélectionner les actions à effectuer selon le moment où la touche est appuyée
 function traiterAppuieTouche(event) {
-	console.log("salut");
+	// si on est sur l'ecran d'accueil ou de fin, on passe sur l'écran "suivant" selon l'ordre :
+	// Accueil -> Jeu -> Fin -> Accueil ...
 	if(afficherEcranAccueil) { 
 		afficherEcranAccueil = false;
 		setup();
@@ -212,62 +218,98 @@ function traiterAppuieTouche(event) {
 		 afficherEcranAccueil = true;
 		 setup();
 	 }
+
+	 // sinon, on appelle la fonction appuyer
+	 // cf appuyer() 
 	 else {
 		 appuyer(event);
 	 }
 }
 
+// fonction qui affiche l'image d'aide
 function insererAide() {
-	//on supprime les fils de regles ce qui évitera d'avoir deux fois la même image affichée
+	// On commence par supprimer les règles afin d'éviter les duplications
 	var nbChildren = regles.children.length; //on compte le nombre d'enfants de règles  
 	for(var i=0; i < nbChildren; i++) {
 		regles.removeChild(regles.lastChild); //on supprime les enfants de règles
 	}
 
-	//création de l'image
+	// Puis on rajoute l'image en la créeant auparavant
 	var imgAide = document.createElement('img'); 
-	//ajout d'attribut id et src
     imgAide.setAttribute('id', 'help'); 
-    imgAide.setAttribute('src', './aide.jpg'); 
-    imgAide.addEventListener("mouseover", afficherAide);
-    //écouteur d'évenement appelant la fonction Opacity au survol de l'image aide pour passer l'opacity des images à 0.5
-    imgAide.addEventListener("mouseover", Opacity); 
+    imgAide.setAttribute('src', './aide.jpg');
     imgAide.style.width = (1/3) * fond.width - 100 + "px";
-    //insertion dans le dom
+
+	// On met des ecouteurs d'evenement permettant de montrer les regles quand on survole le bouton ( l'image ) aide
+	imgAide.addEventListener("mouseover", afficherAide);
+    imgAide.addEventListener("mouseover", Opacity);
+
+	OpacityAllImage();
+
     regles.appendChild(imgAide);  
     boutonCacherRegles.style.visibility="hidden";
 }
 
+// fonction evenenement permettant de sélectionner les actions à effectuer selon la touche qui est appuyée
 function appuyer(event) {
-	OpacityAllImage(); //lorsqu'on appuie l'opacity des images passe à 1
+
+	// lorsque l'on appuie sur une touche, on commence par sortir de la "pause"
+	OpacityAllImage();
+
+	// fleche gauche ou fleche droite : on déplace le personnage
 	if(event.keyCode === 37 || event.keyCode === 39) {
 		bougerPersoX(event);
 	}
+
+	// touche w : on lance un tir, a condition de ne pas déjà être en train de tirer
 	if(!enCoursDeTir && event.keyCode === 87) {
 		calculDureeAppuie(event);
 	}
 }
 
+// fonction qui calcule la durée pendant laquelle le joueur a laissé la touche w appuyée ( ce qui permet de faire un tir plus puissant )
 function calculDureeAppuie(event) {
-	if( ! enCoursDeTir) {
+
+	// on vérifie a nouveau qu'il n'y ai pas déjà un tir en cours
+	if(!enCoursDeTir) {
+
+		// on commence un tir
 		enCoursDeTir = true;
+
+		// on récupère le temps local correspondant à l'evenement keydown
 		tempsDebutTir = event.timeStamp;
+
+		// et enfin, on ajoute un ecouteur d'evenement pour une touche relachée
 		document.addEventListener("keyup",function(event) { relacher(event, tempsDebutTir) } );
 	}
 }
 
+// fonction evenement appellee lorsque le joueur a appuyé sur w et relache une touche
 function relacher(event, debut) {
+	// on vérifie par sécurité qu'il y ai un tir en cours, et que la touche relachée soit bien le w
 	if(enCoursDeTir && event.keyCode === 87) {
+
+		// on récupère le temps local de l'evenement et on supprime l'écouteur d'évènement
 		var fin = event.timeStamp;
 		document.removeEventListener("keyup",function(event) { relacher(event, debut) } );
+
+		// on arrete de "charger" le tir
 		enCoursDeTir = false;
+
+		// cette vérification permet d'éviter au joueur de tirer pendant que le ballon est en vol vers le panier
 		if(peutBouger) {
+
+			// on lance réelement le tir, en passsant en argument la durée ( en ms ) durant laquelle la touche w est restée enfoncée
 			tir(fin-debut);
 		}	
 	}
 }
 
+// fonction de communication avec la bdd
 function myajax(url, callBack) {
+	// cette fonction est identique à celle vue en cours
+	// c'est à dire, que l'on envoie une requete en GET sur une page php
+	// et on récupère la réponse du serveur traitée par la fonction callBack en JSON
     var httpRequest = new XMLHttpRequest();
     httpRequest.open("GET", url, true);
     httpRequest.addEventListener("load", function () {
@@ -275,21 +317,38 @@ function myajax(url, callBack) {
     httpRequest.send(null);
 }
 
+// fonction qui récupère de la bdd les meilleurs scores
 function scoreRequest() {
-    var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=select';
+
+	// url en localhost car il s'agit de la version local et non pas serveur du projet
+    var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=select';
+
+	// une fois que le serveur aura renvoyé la réponse, on appelle la fonction afficherScores()
     myajax(url, afficherScores);
 }
 
+// fonction qui insere un nouveau score dans la bdd, avec le nom passé en argument
 function insererScoreBdd(nom) {
-	var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+
+	// information.score correspond au score actuel du joueur (cf informations())
+	var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+
+	// une fois le score inséré, on actualise les meilleurs scores
 	myajax(url, scoreRequest);
 }
 
+// fonction appellé lorsque le serveur bdd répond à une demande des 5 meilleurs scores
 function afficherScores(httpRequest) {
+
+	// on récupère en JSON les meilleurs scores dans un tableau
 	var tabRep = JSON.parse(httpRequest.responseText);
+
+	// on supprime les anciens meilleurs scores pour éviter les dédoublements
 	for(var i=scores.children.length-1; i>0; i--) {
 		scores.removeChild(scores.lastChild);
 	}
+
+	// on crée un paragraphe par meilleur score pour afficher les meilleurs scores
     for(var i=0; i<tabRep.length; i++) {
 		var p = document.createElement("p");
 		p.id = "score" + i;
@@ -299,6 +358,7 @@ function afficherScores(httpRequest) {
     }
 }
 
+// fonction qui retourne un Number représentant la position en x de l'image
 function getImageX(image) {
 	// on récupère la variable "left" du l'image
 	var xString = image.style.left;
@@ -317,253 +377,380 @@ function getImageY(image) {
 	return yNombreChaine / 1;
 }
 
+// fonction permettant de déplacer le personnage à gauche ou à droite
 function bougerPersoX(event) {
+
+	// fleche droite : vers la droite
+	// on vérifie aussi que le personnage puisse bouger
+	// cela permet d'éviter des problèmes, comme déplacer le ballon en vol
 	if (event.keyCode === 39 && peutBouger) {
+
+		// on limite le déplacement du joueur pour éviter qu'il n'aille trop loin
 		if(getImageX(joueur) < 2*fond.width/3) {
 
-			//on bouge le personnage vers la droite en déplaçant aussi le ballon qu'il a dans les mains
+			// on bouge le personnage en déplaçant aussi le ballon qu'il a dans les mains
 			joueur.style.left = getImageX(joueur) + 10 + "px";
 			ballon.style.left = getImageX(ballon) +10 + "px";
 
-			//on augmente le nombre de déplacement
+			// on diminue les déplacements disponibles de 1
+			// cf informations()
 			information.nbDeplacement --;  
 			information.afficher();
+
+			// si le joueur se déplace alors qu'il n'a plus de déplacements disponible, il perd une vie
 			if(information.nbDeplacement === 0) {
-				PerteVie(); //on perd une vie
+				PerteVie();
 			}
 		} 
 	}
+
+	// fleche gauche : vers la gauche
 	if(event.keyCode === 37 && peutBouger) { 
 		if(getImageX(joueur) > fond.width/4) {
-
-			//on bouge le personnage vers la gauche en déplaçant aussi le ballon qu'il a dans les mains
 			joueur.style.left= getImageX(joueur) - 10 + "px"; 
 			ballon.style.left= getImageX(ballon) - 10 + "px";
 
-			//on augmente le nombre de déplacement
 			information.nbDeplacement --;  
 			information.afficher();
 			if(information.nbDeplacement === 0) {
-				PerteVie(); //on perd une vie
+				PerteVie();
 			}
 		}
 	}	
 }
 
+// fonction qui permet d'afficher les règles du jeu
 function afficherAide(event) {
-	//on cache l'image d'aide
-	event.target.style.visibility = "hidden";  
-	boutonCacherRegles.style.visibility="visible";
-	boutonCacherRegles.addEventListener("click", insererAide); 
-	//on crée puis insère un h2 dans le dom fils de regles
-	var newh2=document.createElement('h2'); 
-	newh2.innerHTML="Voici les règles de notre jeu"; 
+
+	// on supprime le premier fils de règle correspondant à l'image du bouton d'aide
+	regles.removeChild(regles.firstChild); 
+
+	// on affiche le bouton permettant de cacher les règles
+	boutonCacherRegles.style.visibility = "visible";
+	boutonCacherRegles.addEventListener("click", insererAide);
+
+	// on crée puis insère un titre (h2) dans les règles
+	var newh2 = document.createElement('h2'); 
+	newh2.innerHTML = "Voici les règles de notre jeu"; 
 	regles.appendChild(newh2); 
 	
-	//on crée et on insère des paragraphes dans le dom
-	var newp=document.createElement('p'); 
-	newp.innerHTML="Pour déplacer le joueur, appuyez sur les flèches de droite ou de gauche"; 
+	// on crée et on insère des paragraphes dans les regles
+	var newp = document.createElement('p'); 
+	newp.innerHTML = "Pour déplacer le joueur, appuyez sur les flèches de droite ou de gauche"; 
 	regles.appendChild(newp); 
 	
-	var newp2=document.createElement('p'); 
-	newp2.innerHTML="Pour tirer, appuyez sur la touche w, plus vous laissez appuyé, plus le tir est puissant"; 
-	regles.appendChild(newp2); 
-	//on supprime le premier fils de règle pour ne plus avoir l'image dans la div règle
-	regles.removeChild(regles.firstChild); 
-	
-	 
+	var newp2 = document.createElement('p'); 
+	newp2.innerHTML = "Pour tirer, appuyez sur la touche w, plus vous laissez appuyé, plus le tir est puissant"; 
+	regles.appendChild(newp2);	 
 }
 
+// fonction qui baisse la luminosité des images
 function Opacity() {
-	//selection de toutes les images
-	var tabImg=document.getElementsByTagName('img'); 
+
+	// on sélectionne toutes les images
+	var tabImg=document.getElementsByTagName('img');
+
+	// et on passe l'opacité de chacune à 0.5
 	for(var i=0; i<tabImg.length; i++) {
-		tabImg[i].style.opacity=0.5; //on passe l'opacité de toutes les images à 0.5
+		tabImg[i].style.opacity=0.5;
 	}
 }
 
+// fonction qui repasse la luminosité des images par défaut
 function OpacityAllImage() {
+	//cf Opacity
 	var tabImg=document.getElementsByTagName('img'); 
 	for(var i=0; i<tabImg.length; i++) {
-		tabImg[i].style.opacity=1; //on passe l'opacitié de toutes les images à 1
+		tabImg[i].style.opacity=1;
 	}
 }
 
+// fonction qui vérifie si le ballon est dans le panier
 function faitPanier() {
-	//on récupère la position du ballon sur l'axe des x et sur l'axe des y
+
+	// on récupère la position du ballon sur l'axe des x et sur l'axe des y
 	var positionXballon = getImageX(ballon); 
 	var positionYballon = getImageY(ballon); 
 	
+	// on récupère également la position du panier en fonction de la taille de l'image
 	var panierX = 4*fond.width/5 + 10;
 	var panierY = 2*fond.height/5;
 	
-	//on regarde si le ballon est proche du panier 
-	if (panierX < positionXballon && positionXballon < panierX+100 && panierY < positionYballon  && positionYballon < panierY+20) {
+	// on regarde si le ballon est proche du panier 
+	if (panierX < positionXballon + 20 && positionXballon - 20 < panierX + 50 && panierY < positionYballon + 20  && positionYballon - 20 < panierY + 10) {
+
+		// si le joueur est loin, il marque 1 point de plus
 		if(getImageX(joueur) < fond.width/3) {
 			information.score++;
 		}
-		information.score ++; //on augmente le score 
+
+		// cf informations()
+		information.score ++;
 		information.afficher();
 		information.bouger();
+
+		// comme on a marqué, on ne va pas perdre de vie
 		perdUneVie = false;
+
+		// on force l'arret du ballon
+		arret(true);		
 	}
 }
 
+// fonction qui enlève une vie
 function PerteVie() { 
-	alert("perte d'une vie"); 
-	information.nbVie --; //on décrémente le compteur 
+
+	// on affiche un message indiquant que le joueur a perdu une vie
+	alert("perte d'une vie");
+
+	// cf informations()
+	information.nbVie --; 
 	information.afficher();
+
+	// si la perte de vie est due à un manque de déplacement, on réinitialise ce nombre
 	if(information.nbDeplacement === 0) {
 		information.nbDeplacement = 50;
 	}
+
+	// si le joueur n'a plus de vie, on fini la partie
 	if(information.nbVie === 0) {
-		
-		finGame();//on appelle la fonction mettant fin au jeu 
+		finGame(); 
 	} 
+
+	// sinon, on reinitialise la position du joueur et du ballon
 	else {
 		setup();
 	}
 }
 
+// fonction qui met fin à la partie
 function finGame() {
+
+	// on indique qu'il faudra afficher l'ecran de défaite au prochain setup()
 	afficherEcranPerdu = true;
 
-	// on demande au joueur de saisir son nom pour sauvegarder son score dans la base de données
-
+	// on empeche le joueur de continuer à jouer en enlevant les écouteurs d'évenement
 	document.removeEventListener("keydown", traiterAppuieTouche);
 	document.removeEventListener("keydown", triche);
-	
+
+	// on demande au joueur de saisir son nom pour sauvegarder son score dans la base de données
 	var input = document.createElement("input");
 	input.id = "input";
 	input.width = 200 + "px";
 	input.style.position = "absolute";
 	input.style.left = fond.width/2 - 100 + "px";
 	input.style.top = fond.height - 50 + "px";
+	
+
+	var label = document.createElement("label");
+	label.setAttribute("for",input.id);
+	label.setAttribute("id", "user");
+	label.style.position = "absolute";
+	label.style.left = fond.width/2 - 175 + "px";
+	label.style.top = fond.height - 75 + "px";
+	label.innerHTML = "Saisir votre nom puis appuyer sur la touche entrée";
+
+	body.appendChild(label);
 	body.appendChild(input);
 
 	document.addEventListener("keydown", appuieToucheBdd);
 }
 
+// fonction qui insere dans la bdd le score du joueur
 function appuieToucheBdd(event) {
-	console.log(event);
+	// on vérifie que le joueur ai bien appuyé sur la touche entrée
 	if(event.keyCode === 13) {
+
+		// on récupère son nom, et appelle la fonction d'insertion dans la bdd myajax
 		var input = document.getElementById("input");
-		insererScoreBdd(input.value);
+		var nom = input.value;
+
+		// si le joueur ne saisi pas de nom on le nomme "Anonyme" par défaut
+		if(nom === "") {
+			nom = "Anonyme";
+		}
+
+		insererScoreBdd(nom);
+
+		// on supprime la zone e saisie
 		body.removeChild(input);
+		body.removeChild(document.getElementById("user"));
+
 		setup();
 	}
 }
 
+// fonction qui permet de tricher
 function triche(event) {
-	chaineTriche=chaineTriche+event.keyCode;  //on ajoute dans la chaine le code des touches enfoncées
-	var code = "66" + "65" + "83" + "75" + "69" + "84"; //chaine représentant le code triche 
+
+	// on ajoute a la chaine de triche le code de la touche
+	chaineTriche=chaineTriche+event.keyCode;
+
+	// code du mot "basket"
+	var code = "66" + "65" + "83" + "75" + "69" + "84";
 	
+	// si la chaine de triche contient le code
 	if (chaineTriche.indexOf(code,0) != -1) {
-		tricheur.style.border="12px inset beige";
-		var feu = document.createElement("img");
-		feu.src = "./flamme.png";
-		feu.id = "feu";
-		feu.style.position = "absolute"; 
-		feu.style.height = "200px"; 
-		feu.style.width = "150px"; 
-		feu.style.top = getImageY(joueur) - 100 + "px"; 
-		feu.style.left = joueur.style.left; 
-		terrain.appendChild(feu);
-		document.removeEventListener("keydown", traiterAppuieTouche);
-	}
-	if (chaineTriche.indexOf(code,0) != -1 && aTricher) {//on vérifie que chaineTriche contient le code triche 
-		information.score = 0; 
-		tricheur.style.border = "none";
-		alert(" Trop de triche score = 0 !"); 
+
+		// si le joueur a déjà triché, on remet son score a zéro
+		if(aTricher) {
+			information.score = 0;
+
+			// et on lui affiche un petit message
+			tricheur.style.border = "none";
+			alert(" Trop de triche score = 0 !"); 
 		
-		information.afficher();
-		aTricher = false; 
-		chaineTriche = ""; 
-		setup();
-	}
-	else if (chaineTriche.indexOf(code,0) != -1) {
-		information.score += 10;//on  augmente le score
-		tricheur.innerHTML = "Si vous trichez encore <br> Votre score va retomber à 0 ! </br"; //écriture du message
-		tricheur.style.textAlign = "center"; 
-		aTricher = true; 
-		setTimeout(effacerAlerteTriche, 5000);
-		information.afficher();
-		chaineTriche = ""; //on réinitialise la chaine pour ne pas pouvoir tricher plusieurs fois
+			information.afficher();
+			aTricher = false; 
+			chaineTriche = ""; 
+			setup();
+		}
+		else {
+
+			// on ignore les touches pendant un moment, c'est pas bien de tricher
+			document.removeEventListener("keydown", traiterAppuieTouche);
+
+			// on affiche un message indiquant que le joueur vient de tricher
+			tricheur.style.border="12px inset beige";
+			tricheur.innerHTML = "Si vous trichez encore <br> Votre score va retomber à 0 ! </br"; //écriture du message
+			tricheur.style.textAlign = "center"; 
+
+			// et on met le personnage en feu
+			var feu = document.createElement("img");
+			feu.src = "./flamme.png";
+			feu.id = "feu";
+			feu.style.position = "absolute"; 
+			feu.style.height = "200px"; 
+			feu.style.width = "150px"; 
+			feu.style.top = getImageY(joueur) - 80 + "px"; 
+			feu.style.left = getImageX(joueur) - 30 + "px"; 
+			terrain.appendChild(feu);
+
+			// on augmete quand même le score de 10 points parce que c'est pas si mal que ca de tricher
+			information.score += 10;
+			
+
+			// on indique que le joueur a déjà triché, car il ne faut pas tricher deux fois
+			aTricher = true; 
+
+			// au bout de 5 secondes, on efface le message et permet au joueur de rejouer
+			setTimeout(effacerAlerteTriche, 5000);
+
+			information.afficher();
+
+			//on réinitialise aussi la chaine pour ne pas tricher plusieurs fois sans le vouloir
+			chaineTriche = ""; 
+		}
 	} 
 }
 
+// fonction qui permet de reprendre le jeu après avoir triché
 function effacerAlerteTriche() {
+
+	// on enleve le feu et le message
 	tricheur.style.border = "none"; 
 	tricheur.innerHTML = ""; 
 	var feu = document.getElementById("feu"); 
-	terrain.removeChild(feu); 
+	terrain.removeChild(feu);
+
+	// on remet l'écouteur d'évènement de l'appuie sur les touches
 	document.addEventListener("keydown", traiterAppuieTouche);
 }
 
-function tir(force){//fonction lancé dès que la touche tir est relaché	
-	peutBouger = false;	
+// fonction permettant de tirer le ballon
+function tir(force){
+
+	// on empeche le joueur de bouger pendant le tir
+	peutBouger = false;
+
+	// on limite également la force maximale du tir
     if(force > 2500){
 		force = 2500;
 	}
 
+	// on crée un intervalle qui va déplacer le ballon toutes les 75ms
 	var attraction = 1;
 	lancer = setInterval(function() {attraction += 2 ;intervalle(force, attraction);arret()}, 75);    
 }
 
-function intervalle(force, attraction){// fonction qui a chaque intervalle de temps bouge le ballon.
+// fonction appelle pour déplacer le ballon lors d'un tir
+function intervalle(force, attraction){
 
+	// on bouge le ballon en X et en Y selon une formule mathématique secrète
     ballon.style.top = getImageY(ballon) - (8+(force*0.024)) + attraction + "px";
     ballon.style.left = getImageX(ballon) + (6+(force*0.0047)) + "px";
     
+	// on vérifie également si le ballon est dans le panier
     faitPanier();
-    
 }
 
-function arret(){
-	
+// fonction permettant d'arreter le tir
+function arret(force){
+
+	// on récupère les coordonnées du panier
 	var panierX = 4*fond.width/5 + 10;
 	var panierY = 2*fond.height/5;
 	
-    if(getImageX(ballon) > panierX+100 || getImageY(ballon) > getImageY(joueur)+100 ) {
+	// si on force l'arret via l'argument, ou que le ballon a dépassé le panier
+    if(force || getImageX(ballon) > panierX+100 || getImageY(ballon) > getImageY(joueur)+100 ) {
 		
+		// on arrete de déplacer le ballon
 		clearInterval(lancer);
 			
-		joueur.style.left = (fond.width / 2) - 50 + "px"; // au centre
-		joueur.style.top = (2/3) * fond.height -25 + "px"; // a 2/3 du bas de l'image = au centre
+		// on repositionne le joueur et le ballon à leurs positions initiales
+		joueur.style.left = (fond.width / 2) - 50 + "px";
+		joueur.style.top = (2/3) * fond.height -25 + "px";
 		
-		ballon.style.left = (fond.width / 2) +5 + "px"; // au centre
-		ballon.style.top = (2/3) * fond.height + 25 + "px"; // a 2/3 du bas de l'image = au centre*/
+		ballon.style.left = (fond.width / 2) +5 + "px";
+		ballon.style.top = (2/3) * fond.height + 25 + "px";
 		
+		// on remet les 50 déplacements possibles
 		information.nbDeplacement = 50;
+
+		// si le joueur doit perdre une vie
+		// c'est à dire s'il n'a pas marqué de points
+		// il per une vie
 		if(perdUneVie) {
 			PerteVie();
 		}
+
+		// on réinitialise les variables
 		perdUneVie = true;
 		peutBouger = true;
 
+		// s'il reste des vies, on refait le setup
 		if(information.nbVie>0) {
 			setup(); 	
 	    }
     }
 }
 
+// fonction constructeur d'un objet information
 function informations(w, h) {
 	
+	// cet objet rerésente les diverses informations sur le jeu
+	// comme le score, le nombre de déplacements et les vies restantes
+
+	// on sélectionne la div où afficher les informations
 	this.div = document.getElementById('informations');
-		
+	
+	// on garde également les tailles et positions de la div
 	this.width = w;
 	this.height = h;
 	
 	this.top = 20;
 	this.left = fond.width/2 - this.width/2;
 	
+	// initialisation des variables
 	this.score = 0;
 	this.nbDeplacement = 50;
 	this.nbVie = 5;
 	
+	// variables permettant de déplacer la div
 	this.iteration = 0;
 	this.intervalle;
 	
+	// fonction qui affiche la div d'information'
 	this.afficher = function() {
 		this.div.style.position = "absolute";
 		this.div.style.width = this.width + "px";
@@ -574,12 +761,15 @@ function informations(w, h) {
 		this.div.innerHTML = "<p class=score>" + this.score + "</p><p> <span class=gauche>Vies</span><span class=droite>Pas</span> </p><p class=chiffres> <span class=gauche>" + this.nbVie + "</span><span class=droite> " + this.nbDeplacement + "</span></p>";	
 	}
 	
+	// fonction qui déplace la div 
+	// cette fonction est appellée en cas de panier réussi
 	this.bouger = function() {
 		this.iteration = 0;
 		this.intervalle = setInterval(function() { information.actionDeIntervalle() }, 30);		
 	}
 	
-	this.actionDeIntervalle = function(x, y) {
+	// fonction qui déplace la div en fonction de l'itération en cours 
+	this.actionDeIntervalle = function() {
 		if(this.iteration < 5) {
 			this.deplacer(-10,0);
 		}
@@ -597,7 +787,8 @@ function informations(w, h) {
 		}
 		this.iteration++;
 	}
-	
+
+	// fonction qui déplace la div de x et y vers la droite et le bas ( peut etre négatif )
 	this.deplacer = function(x, y) {
 		this.left += x;
 		this.top += y;
