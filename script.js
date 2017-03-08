@@ -8,7 +8,7 @@ var joueur; 			// variable correspondant au joueur (img), servant à simplifier 
 var ballon; 			// variable correspondant au ballon (img), servant à simplifier la lecture du code
 var scores; 			// variable correspondant aux 5 meilleurs scores (div), servant à simplifier la lecture du code
 var regles; 			// variable correspondant aux regles (div), servant à simplifier la lecture du code
-var boutonCacherRegles	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
+var boutonCacherRegles = document.getElementById('cacher');	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
 var information; 			// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
 
 var afficherEcranAccueil = true;	// booleen vrai ssi il faut afficher l'écran d'accueil dans le setup au lieu de l'image de fond du terrain
@@ -144,7 +144,7 @@ function setup() {
 	// Bouton servant a cacher les règles du jeu
 	//
 
-    boutonCacherRegles = document.getElementById('cacher'); 
+     
 	
     boutonCacherRegles.style.position = "absolute"; 
     boutonCacherRegles.style.left = fond.width + "px";
@@ -182,7 +182,7 @@ function setup() {
 	document.removeEventListener("keydown", traiterAppuieTouche);
     document.addEventListener("keydown", traiterAppuieTouche);
 	document.addEventListener("keydown", triche);
-	boutonCacherRegles.addEventListener("click", insererAide);    
+	
 	 
 	//
 	//	div de triche
@@ -232,6 +232,7 @@ function insererAide() {
     imgAide.style.width = (1/3) * fond.width - 100 + "px";
     //insertion dans le dom
     regles.appendChild(imgAide);  
+    boutonCacherRegles.style.visibility="hidden";
 }
 
 function appuyer(event) {
@@ -277,8 +278,8 @@ function scoreRequest() {
 }
 
 function insererScoreBdd(nom, score) {
-    var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
-    myajax(url, scoreRequest);
+	var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+	myajax(url, scoreRequest);
 }
 
 function afficherScores(httpRequest) {
@@ -348,7 +349,9 @@ function bougerPersoX(event) {
 
 function afficherAide(event) {
 	//on cache l'image d'aide
-	event.target.style.visibility = "hidden"; 
+	event.target.style.visibility = "hidden";  
+	boutonCacherRegles.style.visibility="visible";
+	boutonCacherRegles.addEventListener("click", insererAide); 
 	//on crée puis insère un h2 dans le dom fils de regles
 	var newh2=document.createElement('h2'); 
 	newh2.innerHTML="Voici les règles de notre jeu"; 
@@ -403,6 +406,9 @@ function PerteVie() {
 	alert("perte d'une vie"); 
 	information.nbVie --; //on décrémente le compteur 
 	information.afficher();
+	if(information.nbDeplacement==0) {
+		information.nbDeplacement=50;
+	}
 	if(information.nbVie === 0) {
 		finGame();//on appelle la fonction mettant fin au jeu 
 	} 
@@ -436,8 +442,13 @@ function triche(event) {
 	}
 	if (chaineTriche.indexOf(code,0) != -1 && aTricher) {//on vérifie que chaineTriche contient le code triche 
 		information.score=0; 
+		tricheur.style.border="none";
 		alert(" Trop de triche score = 0 !"); 
+		
 		information.afficher();
+		aTricher=false; 
+		chaineTriche=""; 
+		setup();
 	}
 	else if (chaineTriche.indexOf(code,0) != -1) {
 		information.score+=10;//on  augmente le score
@@ -451,7 +462,7 @@ function triche(event) {
 }
 
 function effacerAlerteTriche() {
-	
+	aTricher=false; 
 	tricheur.style.border="none"; 
 	tricheur.innerHTML=""; 
 	var feu=document.getElementById("feu"); 
@@ -510,7 +521,7 @@ function informations(w, h) {
 	this.width = w;
 	this.height = h;
 	
-	this.top = 50;
+	this.top = 20;
 	this.left = fond.width/2 - this.width/2;
 	
 	this.score = 0;
