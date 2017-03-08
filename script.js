@@ -1,15 +1,15 @@
 // Evenement déclenché lorsque le DOM a fini de charger, qui va appeller notre fonction setup()
 document.addEventListener("DOMContentLoaded", setup);
 
-var body = document.getElementById('body');		// variable correspondant au body, servant à simplifier la lecture du code
+var body;				// variable correspondant au body, servant à simplifier la lecture du code
 var terrain; 			// variable correspondant au terrain de jeu (div), servant à simplifier la lecture du code
 var fond; 				// variable correspondant au fond (img), servant à simplifier la lecture du code
 var joueur; 			// variable correspondant au joueur (img), servant à simplifier la lecture du code
 var ballon; 			// variable correspondant au ballon (img), servant à simplifier la lecture du code
 var scores; 			// variable correspondant aux 5 meilleurs scores (div), servant à simplifier la lecture du code
 var regles; 			// variable correspondant aux regles (div), servant à simplifier la lecture du code
-var boutonCacherRegles = document.getElementById('cacher');	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
-var information; 			// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
+var boutonCacherRegles;	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
+var information; 		// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
 
 var afficherEcranAccueil = true;	// booleen vrai ssi il faut afficher l'écran d'accueil dans le setup au lieu de l'image de fond du terrain
 var afficherEcranPerdu = false;		// boolean vrai ssi il faut afficher l'écran gameOver dans le setup au lieu de l'image de fond du terrain
@@ -17,12 +17,12 @@ var afficherEcranPerdu = false;		// boolean vrai ssi il faut afficher l'écran g
 var perdUneVie = true; // vrai ssi le joueur perd une vie lorsque le ballon s'arrete, permet d'éviter de perdre une vie en marquant un panier
 
 var enCoursDeTir = false; 	// vrai ssi le joueur est en train de tirer (touche enfoncée)
-var peutBouger = true; 	// vrai ssi le joueur est en train de tirer (touche enfoncée)
+var peutBouger = true; 		// vrai ssi le joueur est en train de tirer (touche enfoncée)
 
-var chaineTriche=""; //variable contenant les caractères que nous saississons au clavier
-var aTricher=false; //au début du jeu, le joueur n'a pas triché
+var chaineTriche = ""; //variable contenant les caractères que nous saississons au clavier
+var aTricher = false; //au début du jeu, le joueur n'a pas triché
 
-var tricheur = document.getElementById('triche');
+var tricheur;
 
 var lancer; 
 
@@ -30,7 +30,7 @@ var lancer;
 function setup() {
  
     // on initialise les variables globales body et terrain
-   
+	body = document.getElementById('body')
     terrain = document.getElementById('terrain');
 
 	// au cas où ce n'est pas la première fois que la fonction est appellée, on "nettoie" le terrain, en supprimant tout ses enfants dans le DOM
@@ -122,6 +122,7 @@ function setup() {
 	if(afficherEcranAccueil || afficherEcranPerdu) {
 		information = new informations(300, 100);
 		information.div.removeAttribute("class");
+		information.div.innerHTML = "";
 	}
 	else {
 		information.afficher();
@@ -137,19 +138,18 @@ function setup() {
     regles.style.height = fond.height + "px"; 
     regles.style.left = fond.width + "px";
 
-    //insertion de l'image aide sur le document
-    insererAide(); 
-
 	//
 	// Bouton servant a cacher les règles du jeu
 	//
 
-     
+    boutonCacherRegles = document.getElementById('cacher');
 	
     boutonCacherRegles.style.position = "absolute"; 
     boutonCacherRegles.style.left = fond.width + "px";
     boutonCacherRegles.style.top = fond.height + "px";
-   
+
+	//insertion de l'image aide sur le document
+    insererAide(); 
 
 	//
 	//	Meilleurs scores
@@ -188,6 +188,8 @@ function setup() {
 	//	div de triche
 	//
 	
+	tricheur = document.getElementById('triche');
+
 	tricheur.style.position = "absolute"; 
     tricheur.style.width = "500px"; 
     tricheur.style.height = "50px"; 
@@ -199,7 +201,8 @@ function setup() {
     
 }
 
-function traiterAppuieTouche(event) { 
+function traiterAppuieTouche(event) {
+	console.log("salut");
 	if(afficherEcranAccueil) { 
 		afficherEcranAccueil = false;
 		setup();
@@ -273,12 +276,12 @@ function myajax(url, callBack) {
 }
 
 function scoreRequest() {
-    var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=select';
+    var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=select';
     myajax(url, afficherScores);
 }
 
-function insererScoreBdd(nom, score) {
-	var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+function insererScoreBdd(nom) {
+	var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
 	myajax(url, scoreRequest);
 }
 
@@ -396,9 +399,13 @@ function faitPanier() {
 	
 	//on regarde si le ballon est proche du panier 
 	if (panierX < positionXballon && positionXballon < panierX+100 && panierY < positionYballon  && positionYballon < panierY+20) {
-			information.score ++; //on augmente le score 
-			information.afficher();
-			perdUneVie = false;
+		if(getImageX(joueur) < fond.width/3) {
+			information.score++;
+		}
+		information.score ++; //on augmente le score 
+		information.afficher();
+		information.bouger();
+		perdUneVie = false;
 	}
 }
 
@@ -406,10 +413,11 @@ function PerteVie() {
 	alert("perte d'une vie"); 
 	information.nbVie --; //on décrémente le compteur 
 	information.afficher();
-	if(information.nbDeplacement==0) {
-		information.nbDeplacement=50;
+	if(information.nbDeplacement === 0) {
+		information.nbDeplacement = 50;
 	}
 	if(information.nbVie === 0) {
+		
 		finGame();//on appelle la fonction mettant fin au jeu 
 	} 
 	else {
@@ -419,8 +427,31 @@ function PerteVie() {
 
 function finGame() {
 	afficherEcranPerdu = true;
-	// inserer bdd ici
-	setup();
+
+	// on demande au joueur de saisir son nom pour sauvegarder son score dans la base de données
+
+	document.removeEventListener("keydown", traiterAppuieTouche);
+	document.removeEventListener("keydown", triche);
+	
+	var input = document.createElement("input");
+	input.id = "input";
+	input.width = 200 + "px";
+	input.style.position = "absolute";
+	input.style.left = fond.width/2 - 100 + "px";
+	input.style.top = fond.height - 50 + "px";
+	body.appendChild(input);
+
+	document.addEventListener("keydown", appuieToucheBdd);
+}
+
+function appuieToucheBdd(event) {
+	console.log(event);
+	if(event.keyCode === 13) {
+		var input = document.getElementById("input");
+		insererScoreBdd(input.value);
+		body.removeChild(input);
+		setup();
+	}
 }
 
 function triche(event) {
@@ -432,40 +463,39 @@ function triche(event) {
 		var feu = document.createElement("img");
 		feu.src = "./flamme.png";
 		feu.id = "feu";
-		feu.style.position="absolute"; 
-		feu.style.height="200px"; 
-		feu.style.width="150px"; 
-		feu.style.top=getImageY(joueur) - 100 + "px"; 
-		feu.style.left=joueur.style.left; 
+		feu.style.position = "absolute"; 
+		feu.style.height = "200px"; 
+		feu.style.width = "150px"; 
+		feu.style.top = getImageY(joueur) - 100 + "px"; 
+		feu.style.left = joueur.style.left; 
 		terrain.appendChild(feu);
 		document.removeEventListener("keydown", traiterAppuieTouche);
 	}
 	if (chaineTriche.indexOf(code,0) != -1 && aTricher) {//on vérifie que chaineTriche contient le code triche 
-		information.score=0; 
-		tricheur.style.border="none";
+		information.score = 0; 
+		tricheur.style.border = "none";
 		alert(" Trop de triche score = 0 !"); 
 		
 		information.afficher();
-		aTricher=false; 
-		chaineTriche=""; 
+		aTricher = false; 
+		chaineTriche = ""; 
 		setup();
 	}
 	else if (chaineTriche.indexOf(code,0) != -1) {
-		information.score+=10;//on  augmente le score
-		tricheur.innerHTML="Si vous trichez encore <br> Votre score va retomber à 0 ! </br"; //écriture du message
-		tricheur.style.textAlign="center"; 
-		aTricher=true; 
+		information.score += 10;//on  augmente le score
+		tricheur.innerHTML = "Si vous trichez encore <br> Votre score va retomber à 0 ! </br"; //écriture du message
+		tricheur.style.textAlign = "center"; 
+		aTricher = true; 
 		setTimeout(effacerAlerteTriche, 5000);
 		information.afficher();
-		chaineTriche=""; //on réinitialise la chaine pour ne pas pouvoir tricher plusieurs fois
+		chaineTriche = ""; //on réinitialise la chaine pour ne pas pouvoir tricher plusieurs fois
 	} 
 }
 
 function effacerAlerteTriche() {
-	aTricher=false; 
-	tricheur.style.border="none"; 
-	tricheur.innerHTML=""; 
-	var feu=document.getElementById("feu"); 
+	tricheur.style.border = "none"; 
+	tricheur.innerHTML = ""; 
+	var feu = document.getElementById("feu"); 
 	terrain.removeChild(feu); 
 	document.addEventListener("keydown", traiterAppuieTouche);
 }
@@ -510,8 +540,11 @@ function arret(){
 		}
 		perdUneVie = true;
 		peutBouger = true;
-		setup(); 	
-    }    
+
+		if(information.nbVie>0) {
+			setup(); 	
+	    }
+    }
 }
 
 function informations(w, h) {
@@ -566,7 +599,7 @@ function informations(w, h) {
 	}
 	
 	this.deplacer = function(x, y) {
-		this.left+= x;
+		this.left += x;
 		this.top += y;
 		this.afficher();
 	}	
