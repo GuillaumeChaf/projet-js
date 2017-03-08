@@ -321,7 +321,7 @@ function myajax(url, callBack) {
 function scoreRequest() {
 
 	// url en localhost car il s'agit de la version local et non pas serveur du projet
-    var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=select';
+     var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=select';
 
 	// une fois que le serveur aura renvoyé la réponse, on appelle la fonction afficherScores()
     myajax(url, afficherScores);
@@ -331,7 +331,7 @@ function scoreRequest() {
 function insererScoreBdd(nom) {
 
 	// information.score correspond au score actuel du joueur (cf informations())
-	var url = 'http://localhost:8080/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
+	var url = 'http://infolimon.iutmontp.univ-montp2.fr/~tornilf/projet-js-master/scoreRequest.php?action=insert&nom=' + nom + '&score=' + information.score;
 
 	// une fois le score inséré, on actualise les meilleurs scores
 	myajax(url, scoreRequest);
