@@ -11,6 +11,7 @@ var regles; 			// variable correspondant aux regles (div), servant à simplifier
 var boutonCacherRegles;	// variable correspondant au bouton permettant de cacher les règles du jeu (input), servant à simplifier la lecture du code
 var information; 		// variable correspondant au score actuel du joueur (div), servant a simplifier la lecture du code
 var tricheur;			// variable correspondant à la zone où on affiche un message en cas d'utilisation de la fonction triche (div)
+var son;				// variable correspondant à la balise son du html (audio)
 
 var afficherEcranAccueil = true;	// booleen vrai ssi il faut afficher l'écran d'accueil dans le setup au lieu de l'image de fond du terrain
 var afficherEcranPerdu = false;		// boolean vrai ssi il faut afficher l'écran gameOver dans le setup au lieu de l'image de fond du terrain
@@ -206,8 +207,24 @@ function setup() {
     
 	tricheur.style.left = fond.width/2 -250 + "px";
 	tricheur.style.top = fond.height/2 - 100 + "px";
+	
+	//
+	//	Ajout du son
+	//
    
-    
+   son = document.getElementById('son');
+   if(afficherEcranAccueil) {
+	   son.src = "intro.mp3";
+	   son.setAttribute("loop","");
+	}
+	else if(afficherEcranPerdu) {
+		son.src = "gameOver.mp3";
+		son.removeAttribute("loop");
+	}
+	else {
+		son.src = "./mario.mp3";
+		son.setAttribute("loop","");
+	}    
 }
 
 // fonction evenenement permettant de sélectionner les actions à effectuer selon le moment où la touche est appuyée
@@ -446,6 +463,14 @@ function afficherAide(event) {
 	var newp2 = document.createElement('p'); 
 	newp2.innerHTML = "Pour tirer, appuyez sur la touche w, plus vous laissez appuyé, plus le tir est puissant"; 
 	regles.appendChild(newp2);	 
+	
+	var newp3 = document.createElement('p'); 
+	newp3.innerHTML = "Vous disposez de 5 vies et de 50 pas par tir"; 
+	regles.appendChild(newp3);
+	
+	var newp4 = document.createElement('p'); 
+	newp4.innerHTML = "Ceci est un jeu de ... ?"; 
+	regles.appendChild(newp4);	 	
 }
 
 // fonction qui baisse la luminosité des images
@@ -487,6 +512,10 @@ function faitPanier() {
 		if(getImageX(joueur) < fond.width/3) {
 			information.score++;
 		}
+		
+		// on joue un son de victoire
+		son.src = "win.mp3";
+		son.removeAttribute("loop");
 
 		// cf informations()
 		information.score ++;
@@ -503,6 +532,10 @@ function faitPanier() {
 
 // fonction qui enlève une vie
 function PerteVie() { 
+	
+	// son de fail
+	son.src = "rate.mp3";
+	son.removeAttribute("loop");
 
 	// on affiche un message indiquant que le joueur a perdu une vie
 	alert("perte d'une vie");
@@ -519,11 +552,6 @@ function PerteVie() {
 	// si le joueur n'a plus de vie, on fini la partie
 	if(information.nbVie === 0) {
 		finGame(); 
-	} 
-
-	// sinon, on reinitialise la position du joueur et du ballon
-	else {
-		setup();
 	}
 }
 
@@ -536,6 +564,10 @@ function finGame() {
 	// on empeche le joueur de continuer à jouer en enlevant les écouteurs d'évenement
 	document.removeEventListener("keydown", traiterAppuieTouche);
 	document.removeEventListener("keydown", triche);
+	
+	// son de fin
+	son.src = "bdd.mp3";
+	son.setAttribute("loop","");
 
 	// on demande au joueur de saisir son nom pour sauvegarder son score dans la base de données
 	var input = document.createElement("input");
@@ -598,16 +630,22 @@ function triche(event) {
 
 		// si le joueur a déjà triché, on remet son score a zéro
 		if(aTricher) {
+			
+			// on met un petit son 
+			son.src = "triche2.mp3";
+			son.removeAttribute("loop");
 			information.score = 0;
 
 			// et on lui affiche un petit message
 			tricheur.style.border = "none";
-			alert(" Trop de triche score = 0 !"); 
-		
+			alert(" Trop de triche score = 0 !");
+			
 			information.afficher();
 			aTricher = false; 
-			chaineTriche = ""; 
-			setup();
+			chaineTriche = "";
+			
+			document.removeEventListener("keydown", traiterAppuieTouche);
+			setTimeout(setup,1000);
 		}
 		else {
 
@@ -629,6 +667,10 @@ function triche(event) {
 			feu.style.top = getImageY(joueur) - 80 + "px"; 
 			feu.style.left = getImageX(joueur) - 30 + "px"; 
 			terrain.appendChild(feu);
+			
+			// on met un petit son 
+			son.src = "excellent.mp3";
+			son.removeAttribute("loop");
 
 			// on augmete quand même le score de 10 points parce que c'est pas si mal que ca de tricher
 			information.score += 10;
@@ -658,6 +700,10 @@ function effacerAlerteTriche() {
 	if(feu) {
 		terrain.removeChild(feu);
 	}
+	
+	// on remet le son de base
+	son.src = "mario.mp3";
+	son.setAttribute("loop","");
 
 	// on remet l'écouteur d'évènement de l'appuie sur les touches
 	document.addEventListener("keydown", traiterAppuieTouche);
@@ -709,16 +755,16 @@ function arret(force){
 		// on repositionne le joueur et le ballon à leurs positions initiales
 		joueur.style.left = (fond.width / 2) - 50 + "px";
 		joueur.style.top = (2/3) * fond.height -25 + "px";
-		
-		ballon.style.left = (fond.width / 2) +5 + "px";
-		ballon.style.top = (2/3) * fond.height + 25 + "px";
+	
+		ballon.style.left = (fond.width / 2) + 9 + "px";
+		ballon.style.top = (2/3) * fond.height + 29 + "px";
 		
 		// on remet les 50 déplacements possibles
 		information.nbDeplacement = 50;
 
 		// si le joueur doit perdre une vie
 		// c'est à dire s'il n'a pas marqué de points
-		// il per une vie
+		// il perd une vie
 		
 		if(force) {
 			clearInterval(lancer);
@@ -733,8 +779,9 @@ function arret(force){
 		peutBouger = true;
 
 		// s'il reste des vies, on refait le setup
-		if(information.nbVie>0) {
-			setup(); 	
+		if(information.nbVie > 0) {
+			document.removeEventListener("keydown", traiterAppuieTouche);
+			setTimeout(setup ,2000);	
 	    }
     }
 }

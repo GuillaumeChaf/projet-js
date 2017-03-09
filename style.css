@@ -44,3 +44,12 @@
 	font-weight: bold;
 	color: #455;
 }
+
+#regles > p {
+    color: #1a4d9b;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+#regles > h2 {
+    text-align: center;
+}
